@@ -8,7 +8,6 @@ void main() {
   runApp(MyApp());
 }
 
-// TODO: Finding out why number keyboard type isn't working. when wraped in gesture detector widget.
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {

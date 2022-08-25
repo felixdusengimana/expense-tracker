@@ -47,23 +47,41 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+//WidgetsBindingObeserver is for listening to app state: resumed, paused, suspended, etc.
+class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   final List<Transaction> _usertransactions = [
-    Transaction(
-        id: "2", title: "title 1", amount: 400.00, dateTime: DateTime.now()),
-    Transaction(
-        id: "4", title: "title 2", amount: 400.00, dateTime: DateTime.now()),
-    Transaction(
-        id: "5", title: "title 3", amount: 400.00, dateTime: DateTime.now()),
-    Transaction(
-        id: "6", title: "title 4", amount: 400.00, dateTime: DateTime.now()),
-    Transaction(
-        id: "7", title: "title 5", amount: 400.00, dateTime: DateTime.now()),
-    Transaction(
-        id: "8", title: "title 6", amount: 400.00, dateTime: DateTime.now()),
-    Transaction(
-        id: "9", title: "title 7", amount: 400.00, dateTime: DateTime.now()),
+    //   Transaction(
+    //       id: "2", title: "title 1", amount: 400.00, dateTime: DateTime.now()),
+    //   Transaction(
+    //       id: "4", title: "title 2", amount: 400.00, dateTime: DateTime.now()),
+    //   Transaction(
+    //       id: "5", title: "title 3", amount: 400.00, dateTime: DateTime.now()),
+    //   Transaction(
+    //       id: "6", title: "title 4", amount: 400.00, dateTime: DateTime.now()),
+    //   Transaction(
+    //       id: "7", title: "title 5", amount: 400.00, dateTime: DateTime.now()),
+    //   Transaction(
+    //       id: "8", title: "title 6", amount: 400.00, dateTime: DateTime.now()),
+    //   Transaction(
+    //       id: "9", title: "title 7", amount: 400.00, dateTime: DateTime.now()),
   ];
+
+  @override
+  void didChangeAppLifecyleState(AppLifecycleState state) {
+    print(state);
+  }
+
+  @override
+  void initState() {
+    WidgetsBinding.instance.addObserver(this);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
 
   bool _showChart = false;
 
@@ -107,6 +125,45 @@ class _MyHomePageState extends State<MyHomePage> {
         });
   }
 
+  List<Widget> _buildLandspaceContent(MediaQueryData mediaQuery,
+      PreferredSizeWidget appBar, Widget textListWidget) {
+    return [
+      Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Text("Show Chart", style: Theme.of(context).textTheme.headline6),
+          Switch.adaptive(
+              value: _showChart,
+              onChanged: (val) {
+                setState(() {
+                  _showChart = val;
+                });
+              }),
+        ],
+      ),
+      _showChart
+          ? Container(
+              height: mediaQuery.size.height * 1 -
+                  appBar.preferredSize.height -
+                  mediaQuery.padding.top,
+              child: Chart(_recentTransactions))
+          : textListWidget
+    ];
+  }
+
+  List<Widget> _buildPortraitContent(MediaQueryData mediaQuery,
+      PreferredSizeWidget appBar, Widget textListWidget) {
+    return [
+      Container(
+        height: mediaQuery.size.height * 0.3 -
+            appBar.preferredSize.height -
+            mediaQuery.padding.top,
+        child: Chart(_recentTransactions),
+      ),
+      textListWidget
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
@@ -145,35 +202,9 @@ class _MyHomePageState extends State<MyHomePage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
             if (isLandscape)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Text("Show Chart",
-                      style: Theme.of(context).textTheme.headline6),
-                  Switch.adaptive(
-                      value: _showChart,
-                      onChanged: (val) {
-                        setState(() {
-                          _showChart = val;
-                        });
-                      }),
-                ],
-              ),
+              ..._buildLandspaceContent(mediaQuery, appBar, textListWidget),
             if (!isLandscape)
-              Container(
-                  height: mediaQuery.size.height * 0.3 -
-                      appBar.preferredSize.height -
-                      mediaQuery.padding.top,
-                  child: Chart(_recentTransactions)),
-            if (!isLandscape) textListWidget,
-            if (isLandscape)
-              _showChart
-                  ? Container(
-                      height: mediaQuery.size.height * 1 -
-                          appBar.preferredSize.height -
-                          mediaQuery.padding.top,
-                      child: Chart(_recentTransactions))
-                  : textListWidget,
+              ..._buildPortraitContent(mediaQuery, appBar, textListWidget),
           ],
         ),
       ),
